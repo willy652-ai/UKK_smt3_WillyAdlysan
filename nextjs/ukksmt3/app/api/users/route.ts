@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAuthenticatedUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { generateUserId } from "@/lib/user-id";
 import { hashPassword } from "@/lib/user-security";
 
 const userFields = {
@@ -10,6 +11,40 @@ const userFields = {
   role: true,
   createdAt: true,
 } as const;
+
+type UserWithId = { id: string | number; role: string };
+
+function addDisplayIds<T extends UserWithId>(users: T[]) {
+  const usedIds = new Set<string>();
+
+  for (const user of users) {
+    const prefix = user.role === "admin" ? "ADM" : user.role === "staff" ? "STF" : null;
+    const id = String(user.id);
+    if (prefix && id.startsWith(prefix) && /^\d+$/.test(id.slice(prefix.length))) {
+      usedIds.add(id);
+    }
+  }
+
+  const nextNumbers = { ADM: 1, STF: 1 };
+  return users.map((user) => {
+    const prefix = user.role === "admin" ? "ADM" : user.role === "staff" ? "STF" : null;
+    const id = String(user.id);
+    if (!prefix) return { ...user, displayId: id };
+    if (id.startsWith(prefix) && /^\d+$/.test(id.slice(prefix.length))) {
+      return { ...user, displayId: id };
+    }
+
+    let number = nextNumbers[prefix];
+    let displayId = `${prefix}${String(number).padStart(4, "0")}`;
+    while (usedIds.has(displayId)) {
+      number += 1;
+      displayId = `${prefix}${String(number).padStart(4, "0")}`;
+    }
+    usedIds.add(displayId);
+    nextNumbers[prefix] = number + 1;
+    return { ...user, displayId };
+  });
+}
 
 function isDuplicateEmail(error: unknown) {
   return (
@@ -34,7 +69,7 @@ export async function GET() {
       orderBy: { createdAt: "asc" },
       select: userFields,
     });
-    return NextResponse.json({ users });
+    return NextResponse.json({ users: addDisplayIds(users) });
   } catch (error) {
     console.error("Gagal mengambil daftar user:", error);
     return NextResponse.json({ error: "Gagal memuat daftar user." }, { status: 500 });
@@ -86,6 +121,7 @@ export async function POST(request: Request) {
   try {
     const createdUser = await prisma.user.create({
       data: {
+        id: await generateUserId(role),
         fullname,
         email,
         passwordHash: await hashPassword(password),

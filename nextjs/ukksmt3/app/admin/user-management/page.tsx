@@ -16,7 +16,8 @@ import {
 } from "@/components/ui/table";
 
 type User = {
-  id: number;
+  id: string | number;
+  displayId: string;
   fullname: string;
   email: string;
   role: string;
@@ -35,7 +36,7 @@ export default function UserManagementPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(true);
-  const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [deletingId, setDeletingId] = useState<string | number | null>(null);
 
   const loadUsers = useCallback(async () => {
     try {
@@ -136,9 +137,9 @@ export default function UserManagementPage() {
                   </TableCell>
                 </TableRow>
               ) : (
-                users.map((user, index) => (
+                users.map((user) => (
                   <TableRow key={user.id}>
-                    <TableCell>{index + 1}</TableCell>
+                    <TableCell>{user.displayId}</TableCell>
                     <TableCell className="font-medium">{user.fullname}</TableCell>
                     <TableCell>{user.email}</TableCell>
                     <TableCell className="capitalize">{user.role}</TableCell>

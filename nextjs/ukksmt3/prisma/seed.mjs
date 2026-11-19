@@ -28,8 +28,21 @@ async function main() {
     return;
   }
 
+  const admins = await prisma.user.findMany({
+    where: { id: { startsWith: "ADM" } },
+    select: { id: true },
+  });
+  const nextAdminNumber =
+    admins.reduce((maximum, admin) => {
+      const suffix = admin.id.slice(3);
+      if (!/^\d+$/.test(suffix)) return maximum;
+      const number = Number(suffix);
+      return Number.isSafeInteger(number) ? Math.max(maximum, number) : maximum;
+    }, 0) + 1;
+
   await prisma.user.create({
     data: {
+      id: `ADM${String(nextAdminNumber).padStart(4, "0")}`,
       fullname: "Administrator",
       email,
       passwordHash: await hashPassword(password),

@@ -13,7 +13,7 @@ type UserFormProps = {
 };
 
 type ManagedUser = {
-  id: number;
+  id: string;
   fullname: string;
   email: string;
   role: string;

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAuthenticatedUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { generateUserId } from "@/lib/user-id";
 import { hashPassword } from "@/lib/user-security";
 
 const userFields = {
@@ -33,8 +34,7 @@ function isMissingUser(error: unknown) {
 
 async function getRouteUser(context: RouteContext) {
   const { id } = await context.params;
-  const userId = Number(id);
-  return Number.isSafeInteger(userId) && userId > 0 ? userId : null;
+  return id.length > 0 && id.length <= 10 ? id : null;
 }
 
 async function getAdmin() {
@@ -150,6 +150,7 @@ export async function PATCH(request: Request, context: RouteContext) {
     const updatedUser = await prisma.user.update({
       where: { id: userId },
       data: {
+        ...(currentUser.role !== role ? { id: await generateUserId(role) } : {}),
         fullname,
         email,
         role,
