@@ -31,7 +31,7 @@ export async function GET() {
 
   try {
     const users = await prisma.user.findMany({
-      orderBy: { createdAt: "desc" },
+      orderBy: { createdAt: "asc" },
       select: userFields,
     });
     return NextResponse.json({ users });

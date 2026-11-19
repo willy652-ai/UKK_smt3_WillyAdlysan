@@ -114,6 +114,7 @@ export default function UserManagementPage() {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-12">No</TableHead>
                 <TableHead>Nama</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Role</TableHead>
@@ -124,19 +125,20 @@ export default function UserManagementPage() {
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell className="py-8 text-center text-muted-foreground" colSpan={5}>
+                  <TableCell className="py-8 text-center text-muted-foreground" colSpan={6}>
                     Memuat user...
                   </TableCell>
                 </TableRow>
               ) : users.length === 0 ? (
                 <TableRow>
-                  <TableCell className="py-8 text-center text-muted-foreground" colSpan={5}>
+                  <TableCell className="py-8 text-center text-muted-foreground" colSpan={6}>
                     Belum ada user.
                   </TableCell>
                 </TableRow>
               ) : (
-                users.map((user) => (
+                users.map((user, index) => (
                   <TableRow key={user.id}>
+                    <TableCell>{index + 1}</TableCell>
                     <TableCell className="font-medium">{user.fullname}</TableCell>
                     <TableCell>{user.email}</TableCell>
                     <TableCell className="capitalize">{user.role}</TableCell>
